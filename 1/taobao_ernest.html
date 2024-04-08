@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>宝葫芦商城</title>
+    <link rel="stylesheet" type="text/css" href="main.css">
+    <script src="jquery-1.12.4.js"></script>
+    <script>
+        $(function() {
+            //用绑定的方法处理删除事件！防止排序重新生成的元素失去功能，其他事件模仿此方法
+            $(document).on('click', ":button", function() {
+               
+            })
+
+            //价格排序
+            $("#priceSort").click(function() {
+                //1.保存原始数据
+                var aTr = new Array();
+                $("tbody tr").each(function() { //表格中每一行
+                    //对象obj保存每行上的元素，html属性是标签内容，price是排序的依据--价格
+                    var obj = new Object();
+                    obj.html = $(this).html(); //标签间的内容
+                    obj.price = parseFloat($(this).find("span").html()) //排序依据：价钱
+                    obj.checked = $(this).find(":checkbox").prop("checked"); //复选框状态
+                    aTr.push(obj);
+                })
+
+                //2.排序----冒泡		
+                if ($(this).hasClass("btn_down")) { //有"btn_down" 降序
+                    sortDesc(aTr);
+                } else { //升序
+                    sort(aTr);
+                }
+
+                //3.按照排序的结果重新生成<table>中的<tr>
+                //3.1 拼字符串
+                var sTr = "";
+                $(aTr).each(function() {
+                        sTr += "<tr>" + this.html + "</tr>"
+                    })
+                    //3.2 把字符串代表的所有元素添加到<table>中
+                $("tbody").html(sTr);
+
+                //3.3 还原复选框
+                $(aTr).each(function(index) {
+                    var flag = this.checked;
+                    $("tr:gt(0)").find(":checkbox").eq(index).prop("checked", flag);
+                })
+
+                $(this).toggleClass("btn_down");
+
+                //4.隔行变色
+                setcolor();
+                caulPrice();
+            })
+
+            //地区排序
+            $("#addressSort").click(function(){
+                //1.保存原始数据
+                var aTr = new Array();
+                $("tbody tr").each(function() { //表格中每一行
+                    //对象obj保存每行上的元素，html属性是标签内容，price是排序的依据--价格
+                    var obj = new Object();
+                    obj.html = $(this).html(); //标签间的内容
+                    obj.price = parseFloat($(this).find("span").html()) 
+                    obj.address = $(this).children().next().next().next().html(); //排序依据：地区
+                    obj.checked = $(this).find(":checkbox").prop("checked"); //复选框状态
+                    aTr.push(obj);
+                })
+
+                //2.排序----冒泡		
+                if ($(this).hasClass("btn_down")) { //有"btn_down" 降序
+                    sortAddrDesc(aTr);
+                } else { //升序
+                    sortAddr(aTr);
+                }
+
+                //3.按照排序的结果重新生成<table>中的<tr>
+                //3.1 拼字符串
+                var sTr = "";
+                $(aTr).each(function() {
+                        sTr += "<tr>" + this.html + "</tr>"
+                    })
+                    //3.2 把字符串代表的所有元素添加到<table>中
+                $("tbody").html(sTr);
+
+                //3.3 还原复选框
+                $(aTr).each(function(index) {
+                    var flag = this.checked;
+                    $("tr:gt(0)").find(":checkbox").eq(index).prop("checked", flag);
+                })
+
+                $(this).toggleClass("btn_down");
+
+                //4.隔行变色
+                setcolor();
+                caulPrice();
+            })
+
+            //全选全不选
+            $("thead").on('click', ':checkbox', function() {
+                //根据复选框的值确定是否全部选中
+                if ($(this).prop('checked')) { //这里也可以用 .is(":checked")
+                    $("tbody").find("input").prop('checked', true);
+                } 
+                else {
+                    $("tbody").find("input").prop('checked', false);
+                }
+                caulPrice();
+            })
+
+            //单个选中
+            $("tbody").on('click', ':checkbox', function() { caulPrice();})
+
+            //初始界面隔行变色
+            setcolor();
+            caulPrice();    
+        })
+
+        function sort(a) { //a:待排序的数组，冒泡法排序
+            var t;
+            for (var i = 0; i < a.length - 1; i++) { //趟：n-1 n:a数组的长度
+                for (var j = 0; j < a.length - 1 - i; j++) {
+                    if (a[j].price > a[j + 1].price) {
+                        t = a[j];
+                        a[j] = a[j + 1];
+                        a[j + 1] = t;
+                    }
+                }
+            }
+        }
+
+        function sortDesc(a) { //a:待排序的数组
+            var t;
+            for (var i = 0; i < a.length - 1; i++) { //趟：n-1 n:a数组的长度
+                for (var j = 0; j < a.length - 1 - i; j++) {
+                    if (a[j].price < a[j + 1].price) {
+                        t = a[j];
+                        a[j] = a[j + 1];
+                        a[j + 1] = t;
+                    }
+                }
+            }
+        }
+
+        function sortAddr(a) {
+            var t;
+            for (var i = 0; i < a.length - 1; i++) { //趟：n-1 n:a数组的长度
+                for (var j = 0; j < a.length - 1 - i; j++) {
+                    if (a[j].address > a[j + 1].address) {
+                        t = a[j];
+                        a[j] = a[j + 1];
+                        a[j + 1] = t;
+                    }
+                }
+            }
+        }
+
+        function sortAddrDesc(a) {
+            var t;
+            for (var i = 0; i < a.length - 1; i++) { //趟：n-1 n:a数组的长度
+                for (var j = 0; j < a.length - 1 - i; j++) {
+                    if (a[j].address < a[j + 1].address) {
+                        t = a[j];
+                        a[j] = a[j + 1];
+                        a[j + 1] = t;
+                    }
+                }
+            }
+        }
+
+        function setcolor() { //设置隔行变色
+            $("tbody tr:odd").css("background", "rgb(245, 248, 230)");
+        }
+        
+        function caulPrice(){ //计算选中商品总价
+            $("tfoot").find("span").html((0).toFixed(2));
+            $("tbody tr").each(function(){
+                if($(this).find("input").prop('checked')){
+                    var selectPrice = parseFloat($(this).find("span").html());
+                    var nowPrice = parseFloat($("tfoot").find("span").html());
+                    $("tfoot").find("span").html((nowPrice + selectPrice).toFixed(2));
+                }
+            })
+        }
+    </script>
+</head>
+
+<body>
+    <table id="taobao_table">
+        <thead>
+            <tr>
+                <th><label><input type="checkbox"/> 全选</label></th>
+                <th>宝葫芦商城</th>
+                <th width="70"><a id="priceSort" class="btn_active" href="#">价格</a></th>
+                <th width="70"><a id="addressSort" class="btn_active" href="#">地区</a></th>
+                <th>功能</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td align="center" width="60"><input type="checkbox" /></td>
+                <td align="center"><img src="images/1.jpg" alt="商品一" longdesc="" /><a href="">海底捞火锅底料小包一人食酸香番茄底料麻辣清油菌菇底料口味任选</a></td>
+                <td align="center">&yen;<span>14.00</span></td>
+                <td align="center">北京</td>
+                <td align="center"><input type="button" value="口味" /></td>
+            </tr>
+            <tr>
+                <td align="center"><input type="checkbox" /></td>
+                <td align="center"><img src="images/2.jpg" alt="商品二" longdesc="" /><a href="">SAST迷你小冰箱冷冻冷藏保鲜家用出租房宿舍办公室母乳mini型车载</a></td>
+                <td align="center">&yen;<span>59.00</span></td>
+                <td align="center">广东</td>
+                <td align="center"><input type="button" value="大小" /></td>
+            </tr>
+            <tr>
+                <td align="center"><input type="checkbox" /></td>
+                <td align="center"><img src="images/3.jpg" alt="商品三" longdesc="" /><a href="">懒人沙发可躺可睡床上靠背单人椅子卧室榻榻米坐椅阳台折叠小沙发</a></td>
+                <td align="center">&yen;<span>114.00</span></td>
+                <td align="center">上海</td>
+                <td align="center"><input type="button" value="定制" /></td>
+            </tr>
+            <tr>
+                <td align="center"><input type="checkbox" /></td>
+                <td align="center"><img src="images/1.jpg" alt="商品二" longdesc="" /><a href="">盲盒拆拆乐</a></td>
+                <td align="center">&yen;<span>99.00</span></td>
+                <td align="center">广东</td>
+                <td align="center"><input type="button" value="开赌" /></td>
+            </tr>
+            <tr>
+                <td align="center" width="60"><input type="checkbox" /></td>
+                <td align="center"><img src="images/5.jpg" alt="商品一" longdesc="" /><a href="">羽毛球单人训练器回弹自打室内运动空中悬挂一个人打在家练习神器</a></td>
+                <td align="center">&yen;<span>12.00</span></td>
+                <td align="center">北京</td>
+                <td align="center"><input type="button" value="定制" /></td>
+            </tr>
+            <tr>
+                <td align="center"><input type="checkbox" /></td>
+                <td align="center"><img src="images/6.jpg" alt="商品三" longdesc="" /><a href="">谷言料理包商用预制菜家用加热即食快餐盖浇饭外卖速食家常菜川菜</a></td>
+                <td align="center">&yen;<span>36.00</span></td>
+                <td align="center">上海</td>
+                <td align="center"><input type="button" value="口味" /></td>
+            </tr>
+        </tbody>
+        <tfoot>
+            <tr>
+                <th colspan="5">选中的商品总价是：&yen;<span>0.00</span>元</th>
+            </tr>
+        </tfoot>
+    </table>
+
+</body>
+
+</html>
